@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
 public partial class AssetPath
 {
-    private const string RESOURCES_FOLDER_NAME = "/Resources/";
-    private const string ASSETS_FOLDER_NAME = "Assets/";
+    private const string ASSET_RESOURCES_FOLDER_NAME = "Assets/Resources/";
 
     /// <summary>
     /// Takes the string from the Asset Path Attribute and converts it into
@@ -23,31 +18,21 @@ public partial class AssetPath
             return string.Empty;
         }
 
-        // Get the index of the resources folder
-        int folderIndex = projectPath.IndexOf(RESOURCES_FOLDER_NAME);
-
-        // If it's -1 we this asset is not in a resource folder
-        if (folderIndex == -1)
-        {
-            return string.Empty;
-        }
-
-        // We don't include the 'Resources' part in our final path
-        folderIndex += RESOURCES_FOLDER_NAME.Length;
-
-        // Calculate the full length of our substring 
-        int length = projectPath.Length - folderIndex;
-
-        // Get the substring
-        string resourcesPath = projectPath.Substring(folderIndex, length);
-
-        // Remove file extention
+        string convertedPath = null;
         char separator = '.';
-        string[] resourcesPathWithoutExtension = resourcesPath.Split(separator);
-        resourcesPath = resourcesPathWithoutExtension[0];
+        int lastDotIndex = -1;
+
+        // Get the index of the last dot of the path, witch is the extension dot
+        lastDotIndex = projectPath.LastIndexOf(separator);
+
+        // Keep the begiging of the path, discard the extension
+        convertedPath = projectPath.Substring(0, lastDotIndex);
+
+        // Remove the Assets/Resources/ path, we don't need it
+        convertedPath = convertedPath.Replace(ASSET_RESOURCES_FOLDER_NAME, "");
 
         // Return it.
-        return resourcesPath;
+        return convertedPath;
     }
 
     /// <summary>
@@ -62,27 +47,26 @@ public partial class AssetPath
     /// <returns>The loaded asset or null if it could not be found.</returns>
     public static T Load<T>(string projectPath) where T : UnityEngine.Object
     {
-        // Make sure our path is not null 
-        if(string.IsNullOrEmpty(projectPath))
+        // Make sure our path is not null
+        if (string.IsNullOrEmpty(projectPath))
         {
-            return null; 
+            return null;
         }
 
-        // Get our resources path 
+        // Get our resources path
         string resourcesPath = ConvertToResourcesPath(projectPath);
 
-        if(!string.IsNullOrEmpty(resourcesPath))
+        if (!string.IsNullOrEmpty(resourcesPath))
         {
             // The asset is in a resources folder.
             return Resources.Load<T>(resourcesPath);
         }
 
 #if UNITY_EDITOR
-        // We could not find it in resources so we just try the AssetDatabase. 
+        // We could not find it in resources so we just try the AssetDatabase.
         return UnityEditor.AssetDatabase.LoadAssetAtPath<T>(projectPath);
 #else
         return null;
 #endif
     }
-
 }
