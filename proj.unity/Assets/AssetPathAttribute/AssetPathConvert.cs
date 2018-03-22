@@ -41,6 +41,11 @@ public partial class AssetPath
         // Get the substring
         string resourcesPath = projectPath.Substring(folderIndex, length);
 
+        // Remove file extention
+        char separator = '.';
+        string[] resourcesPathWithoutExtension = resourcesPath.Split(separator);
+        resourcesPath = resourcesPathWithoutExtension[0];
+
         // Return it.
         return resourcesPath;
     }
